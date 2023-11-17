@@ -1,0 +1,8 @@
+.mm-bg-cover .react-parallax img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover !important;
+    display: none !important;
+
+}
