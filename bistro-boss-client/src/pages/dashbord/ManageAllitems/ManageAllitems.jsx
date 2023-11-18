@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import useMenu from "../../../hooks/useMenu";
 import { FaEdit } from "react-icons/fa";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import { Link } from "react-router-dom";
 
 const ManageAllitems = () => {
   const axiosSecure = useAxiosSecure();
@@ -100,9 +101,11 @@ const ManageAllitems = () => {
 
                   {/* update button */}
                   <td>
-                    <span className=" rounded text-xl cursor-pointer   btn btn-sm bg-yellow-600 border-none w-14">
-                      <FaEdit className="text-white" />
-                    </span>
+                    <Link to={`/dashbord/manage_all_items/${item?._id}`}>
+                      <span className=" rounded text-xl cursor-pointer   btn btn-sm bg-yellow-600 border-none w-14">
+                        <FaEdit className="text-white" />
+                      </span>
+                    </Link>
                   </td>
 
                   {/* delete button  */}

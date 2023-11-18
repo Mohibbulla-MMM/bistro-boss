@@ -6,7 +6,7 @@ const Main = () => {
   const location = useLocation();
   const noHeaderFooter = location.pathname.includes("login") || location.pathname.includes("register");
   return (
-    <div className="bg-white">
+    <div className="max-w-screen-xl mx-auto px-3 bg-white ">
       {noHeaderFooter || <Navbar />}
        {/* <Navbar /> */}
       <Outlet></Outlet>

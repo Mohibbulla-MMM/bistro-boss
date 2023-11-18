@@ -13,6 +13,7 @@ import AllUsers from "../pages/dashbord/AllUsers/AllUsers";
 import AdminRoute from "./AdminRoute";
 import AddItem from "../pages/DashBord/AddItem/AddItem";
 import ManageAllitems from "../pages/dashbord/ManageAllitems/ManageAllitems";
+import ManageUpdateItem from "../pages/dashbord/ManageAllitems/ManageUpdateItem";
 
 const Route = createBrowserRouter([
   {
@@ -75,6 +76,14 @@ const Route = createBrowserRouter([
         element: (
           <AdminRoute>
             <ManageAllitems />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "manage_all_items/:id",
+        element: (
+          <AdminRoute>
+            <ManageUpdateItem />
           </AdminRoute>
         ),
       },

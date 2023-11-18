@@ -54,10 +54,9 @@ const AuthProvaider = ({ children }) => {
       if (currentUser) {
         // TODO: token create
         const user = { email: currentUser.email };
-
         axiosPublic.post("/jwt", user).then((res) => {
           // res.data
-          // console.log(res);
+          console.log(res);
           if (res.data.token) {
             localStorage.setItem("jwt-token", res.data.token);
           }

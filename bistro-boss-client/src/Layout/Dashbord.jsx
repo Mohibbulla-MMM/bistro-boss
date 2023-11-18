@@ -5,12 +5,12 @@ import DashbordMenu from "../pages/dashbord/DashbordMenu/DashbordMenu";
 const Dashbord = () => {
   return (
     <div
-      className="flex flex-col lg:flex-row  gap-8 
+      className="flex flex-col lg:flex-row   
       bg-white min-h-screen  "
     >
       {/* sidebar  */}
-      <div className="w-64 ">
-        <div className="drawer p-0 m-0">
+      <div className="w-64   ">
+        <div className="drawer   overflow-y-auto    p-0 m-0">
           <input
             id="my-drawer-3"
             type="checkbox"
@@ -55,7 +55,7 @@ const Dashbord = () => {
         </div>
       </div>
       {/* content container / outlet */}
-      <div className="flex-1 ">
+      <div className="flex-1 p-3 ">
         <Outlet />
       </div>
     </div>

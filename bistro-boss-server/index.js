@@ -14,7 +14,7 @@ console.log(process.env.DB_PASS);
 
 // token varify middle ware ----------------------
 const tokenVarify = (req, res, next) => {
-    console.log('---------------', req.headers.authorization, '---------------',);
+    // console.log('---------------', req.headers.authorization, '---------------',);
     // console.log({ req });
     // console.log({req});
     if (!req.headers.authorization) {
@@ -28,7 +28,7 @@ const tokenVarify = (req, res, next) => {
         }
         // console.log({ decoded });
         req.decoded = decoded
-
+        // console.log(decoded);
 
         next()
     });
@@ -58,16 +58,16 @@ async function run() {
         // verify admin middleWare  ------------
         const verifyAdmin = async (req, res, next) => {
             const email = req.decoded.email;
-            // console.log('>>>>>>>>>>>>>>>>>>>>>>>>', email);
+            console.log('>>>>>>>>>>>>>>>>>>>>>>>>', email);
             const query = { email: email }
-            const user = await usersCollection.findOne(query)
-            // console.log('>>>>>>>>>>>>>>>>>>>>>>>>', user);
+            const user = await usersCollection.findOne(query);
+            console.log('>>>>>>>>>>>>>>>>>>>>>>>>', user);
             const isAdmin = user?.role === 'admin'
             // console.log({ isAdmin });
-            console.log(`${email} Admin roll:---> ${isAdmin}`);
-            // if (!isAdmin) {
-            //     return res.status(403).send({ Message: 'Forbiden access' })
-            // }
+            console.log(`${email} <----: Admin roll :---> ${isAdmin}`);
+            if (!isAdmin) {
+                return res.status(403).send({ Message: 'Forbiden access' })
+            }
             next()
         }
 
@@ -76,6 +76,50 @@ async function run() {
         app.get('/menu', async (req, res) => {
             const result = await menuCollection.find().toArray()
             res.send(result)
+        })
+
+        // all menu get api
+        app.get('/menu/:id', async (req, res) => {
+            try {
+                const id = req.params.id
+                const query = { _id: new ObjectId(id) }
+
+                const result = await menuCollection.findOne(query)
+                res.send(result)
+                console.log("single menu get ", id);
+            }
+            catch (err) {
+                res.send(err)
+                console.log();
+            }
+        })
+
+        // menu update / manage update item page
+        app.patch('/menu/:id', async (req, res) => {
+            try {
+                const data = req.body
+                console.log({ data });
+                const id = req.params.id
+                const query = { _id: new ObjectId(id) }
+                const updatedDoc = {
+                    $set: {
+                        name: data.name,
+                        price: data.price,
+                        category: data.category,
+                        recipe: data.recipe,
+                    }
+                }
+                console.log({ updatedDoc });
+                const result = await menuCollection.updateOne(query, updatedDoc)
+
+
+                res.send(result)
+                console.log("single menu update ", id);
+            }
+            catch (err) {
+                res.send(err)
+                console.log();
+            }
         })
 
         //admin  menu post  api
@@ -106,6 +150,7 @@ async function run() {
                 console.log(errr);
             }
         })
+
         // rewiews
         app.get('/reviews', async (req, res) => {
             try {
@@ -140,6 +185,7 @@ async function run() {
                 const query = { email: email }
                 const result = await cartsCollection.find(query).toArray()
                 res.send(result)
+                console.log(`${email} user cart item get`);
             }
             catch (err) {
                 console.log(err);
@@ -169,7 +215,6 @@ async function run() {
 
             try {
                 const user = req.body;
-
                 const query = { email: user.email }
                 const isExist = await usersCollection.findOne(query)
                 if (isExist) {
@@ -187,7 +232,7 @@ async function run() {
         })
 
         // all users get api -------------
-        app.get('/users', tokenVarify, async (req, res) => {
+        app.get('/users', tokenVarify, verifyAdmin, async (req, res) => {
 
             try {
                 const result = await usersCollection.find().toArray()
@@ -234,8 +279,10 @@ async function run() {
                 console.log(err);
             }
         })
+
+
         // admin role get api ----------
-        app.get('/users/admin/:email', tokenVarify, verifyAdmin, async (req, res) => {
+        app.get('/users/admin/:email', tokenVarify, async (req, res) => {
             try {
                 const email = req.params?.email
                 // console.log({email});
@@ -246,9 +293,11 @@ async function run() {
                 const query = { email: email }
                 const user = await usersCollection.findOne(query)
                 console.log({ user });
-                let admin = false
+                let admin = false;
                 if (user) {
-                    admin = user?.role === "admin"
+                    if (user?.role) {
+                        admin = user?.role === "admin"
+                    }                
                 }
                 console.log({ 'This user is admin: ': admin });
                 res.send({ admin })

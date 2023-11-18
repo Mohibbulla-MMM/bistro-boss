@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 
+p,
+h1,
+h2 {
+    user-select: none;
+} */
+
+/* ::selection {
+    background-color: rgb(214, 57, 0);
+    color: white;
+
+} */

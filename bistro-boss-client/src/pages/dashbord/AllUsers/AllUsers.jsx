@@ -112,7 +112,7 @@ const AllUsers = () => {
   return (
     <div>
       <div className="py-6 text-3xl font-semibold flex justify-evenly gap-3">
-        <h2 className=" ">All users: {}</h2>
+        <h2 className=" ">All users {}</h2>
         <h2 className=" ">Total users: {users && users?.length}</h2>
       </div>
 

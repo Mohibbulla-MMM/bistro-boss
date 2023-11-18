@@ -23,6 +23,8 @@ const DashbordMenu = () => {
     <>
       {admin ? (
         <>
+          {/* --------------------- only admin ----------------------- */}
+
           {/* add home4 */}
           <li>
             <NavLink
@@ -80,11 +82,12 @@ const DashbordMenu = () => {
         </>
       ) : (
         <>
+          {/* --------------------- simple user ----------------------- */}
           {/* user home */}
           <li>
             <NavLink
               className={`btn btn-block btn-ghost bg-white btn-sm hover:bg-gray-200 text-black flex justify-start items-center gap-2 rounded`}
-              to="/dashbord/uuser_home"
+              to="/dashbord/user_home"
             >
               <FaHome />
               User Home
@@ -124,7 +127,7 @@ const DashbordMenu = () => {
           <li>
             <NavLink
               className={`btn btn-block btn-ghost bg-white btn-sm hover:bg-gray-200 text-black flex justify-start items-center gap-2 rounded `}
-              to="/dashbord/add+_review"
+              to="/dashbord/add_review"
             >
               <FaCommentDots />
               Add review
