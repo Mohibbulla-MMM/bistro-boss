@@ -10,7 +10,7 @@ const useUserSave = async (user) => {
   }).then((res) => {
     return res.data;
   });
-  console.log(data);
+  // console.log(data);
   return data;
 };
 

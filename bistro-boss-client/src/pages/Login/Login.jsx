@@ -20,7 +20,7 @@ const Login = () => {
   const capchaRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location);
+  // console.log(location);
   const from = location.state?.from?.pathname || "/";
   // capcha creator engin
   useEffect(() => {

@@ -21,7 +21,7 @@ const GooglePopup = () => {
           email: res.user.email,
         };
         useUserSave(userInfo);
-        console.log(res);
+        // console.log(res);
         toast.success("Login success", { id: loadingId });
         navigate(from, { replace: true });
       })

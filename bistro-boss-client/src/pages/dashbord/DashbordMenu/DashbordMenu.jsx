@@ -13,10 +13,12 @@ import {
 } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 import useAdmin from "../../../hooks/useAdmin";
+import useCarts from "../../../hooks/useCarts";
 
 const DashbordMenu = () => {
+  const [cart] = useCarts();
   const [admin] = useAdmin();
-  console.log(admin);
+  // console.log(admin);
   // const admin = true;
 
   return (
@@ -79,6 +81,17 @@ const DashbordMenu = () => {
               All users
             </NavLink>
           </li>
+
+          {/*MY pdf */}
+          <li>
+            <NavLink
+              className={`btn btn-block btn-ghost bg-white btn-sm hover:bg-gray-200 text-black flex justify-start items-center gap-2 rounded `}
+              to="/dashbord/my_pdf"
+            >
+              <FaUser />
+              My PDF
+            </NavLink>
+          </li>
         </>
       ) : (
         <>
@@ -120,7 +133,7 @@ const DashbordMenu = () => {
               to="/dashbord/cart"
             >
               <FaShoppingCart />
-              my Card
+              my Card ({cart && cart?.length})
             </NavLink>
           </li>
           {/* add review */}
@@ -133,6 +146,7 @@ const DashbordMenu = () => {
               Add review
             </NavLink>
           </li>
+   
           {/* my booking*/}
           <li>
             <NavLink
@@ -143,6 +157,15 @@ const DashbordMenu = () => {
               My booking
             </NavLink>
           </li>{" "}
+          <li>
+            <NavLink
+              className={`btn btn-block btn-ghost bg-white btn-sm hover:bg-gray-200 text-black flex justify-start items-center gap-2 rounded `}
+              to="/dashbord/my_pdf"
+            >
+              <FaUser />
+              My PDF
+            </NavLink>
+          </li>
         </>
       )}
       <div className="divider bg-white h-[2px]"></div>

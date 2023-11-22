@@ -2,6 +2,7 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import useCarts from "../../../hooks/useCarts";
 import toast from "react-hot-toast";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import { Link } from "react-router-dom";
 
 const Cart = () => {
   const [carts, refetch] = useCarts();
@@ -76,9 +77,20 @@ const Cart = () => {
       <div className="flex justify-between items-center gap-2 text-2xl font-semibold ">
         <h2> Total Items: {carts && carts?.length}</h2>
         <h2> Total Price: $ {totalPrice.toFixed(2)}</h2>
-        <button className="btn bg-yellow-600 border-none outline-none text-white rounded">
-          Pay
-        </button>
+        {carts && carts?.length ? (
+          <Link to="/dashbord/payment">
+            <button className="btn bg-yellow-600 border-none outline-none text-white rounded">
+              Pay
+            </button>{" "}
+          </Link>
+        ) : (
+          <button
+            disabled
+            className="btn bg-yellow-600 border-none outline-none text-white rounded"
+          >
+            Pay
+          </button>
+        )}
       </div>
       {/* user cart list table */}
 

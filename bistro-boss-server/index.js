@@ -1,11 +1,12 @@
 const express = require('express')
+require('dotenv').config()
 const app = express()
+const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
-const cors = require('cors')
 const port = process.env.PORT || 7000
-require('dotenv').config()
 
+const stripe = require('stripe')(process.env.VITE_STRIPE_SECRET_KEY)
 // middle ware -------------------------
 app.use(express.json())
 app.use(cors())
@@ -18,13 +19,14 @@ const tokenVarify = (req, res, next) => {
     // console.log({ req });
     // console.log({req});
     if (!req.headers.authorization) {
-        res.status(401).send({ Message: "Unauthorize" })
+        res.status(401).send({ Message: "Unauthorize 1" })
     }
     const token = req.headers.authorization.split(' ')[1]
+    // console.log("25 token ", token);
     // token varify ---------
     jwt.verify(token, process.env.SECRET_TOKEN, function (err, decoded) {
         if (err) {
-            return res.status(401).send({ Message: "Unauthorize" })
+            return res.status(401).send({ Message: "Unauthorize 2" })
         }
         // console.log({ decoded });
         req.decoded = decoded
@@ -54,14 +56,15 @@ async function run() {
         const reviewsCollection = client.db("bistroDB").collection('reviews')
         const cartsCollection = client.db("bistroDB").collection('carts')
         const usersCollection = client.db("bistroDB").collection('users')
+        const paymentsCollection = client.db("bistroDB").collection('payments')
 
         // verify admin middleWare  ------------
         const verifyAdmin = async (req, res, next) => {
             const email = req.decoded.email;
-            console.log('>>>>>>>>>>>>>>>>>>>>>>>>', email);
+            // console.log('>>>>>>>>>>>>>>>>>>>>>>>>', email);
             const query = { email: email }
             const user = await usersCollection.findOne(query);
-            console.log('>>>>>>>>>>>>>>>>>>>>>>>>', user);
+            // console.log('>>>>>>>>>>>>>>>>>>>>>>>>', user);
             const isAdmin = user?.role === 'admin'
             // console.log({ isAdmin });
             console.log(`${email} <----: Admin roll :---> ${isAdmin}`);
@@ -71,7 +74,31 @@ async function run() {
             next()
         }
 
-
+        // ########## ###### stripe payment #####################
+        app.post('/create-payment-intent', async (req, res) => {
+            try {
+                const { price } = req.body;
+                console.log({ price });
+                const amount = parseInt(price * 100)
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    payment_method_types: [
+                        "card"
+                    ],
+                })
+                console.log({ paymentIntent });
+                // res.send(
+                //     "bclientSecret: paymentIntent.client_secret,"
+                // )
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                })
+            }
+            catch (err) {
+                console.log(err);
+            }
+        })
         // all menu get api
         app.get('/menu', async (req, res) => {
             const result = await menuCollection.find().toArray()
@@ -193,6 +220,93 @@ async function run() {
             }
         })
 
+        // admin state --------
+        app.get('/admin-state', tokenVarify, async (req, res) => {
+            try {
+                const users = await usersCollection.estimatedDocumentCount()
+                const menuItems = await menuCollection.estimatedDocumentCount()
+                const orders = await paymentsCollection.estimatedDocumentCount()
+
+                const price = await paymentsCollection.aggregate([
+                    {
+                        $group: {
+                            _id: null,
+                            totalRevenue: { $sum: '$price' }
+                        }
+                    }
+                ]).toArray()
+
+                const revinue = price.length > 0 ? price[0].totalRevenue : 0;
+
+                res.send({
+                    users,
+                    menuItems,
+                    orders,
+                    revinue
+                })
+            }
+            catch (err) {
+                console.log(err);
+            }
+        })
+
+        // using aggregate pipeline 
+        app.get('/order-stats', async (req, res) => {
+            try {
+                const result = await paymentsCollection.aggregate([
+
+                    { $unwind: '$menuItemIds' },
+
+                    {
+                        $lookup: {
+                            from: "menu",
+                            let: { objectId: { $toObjectId: "$menuItemIds" } },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: [
+                                                { $toObjectId: "$_id" },  // Convert foreignId to ObjectId
+                                                "$$objectId"
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            as: "combinedData"
+                        }
+                    },
+                    { $unwind: '$combinedData' },
+                 
+
+                    {
+                        $group: {
+                            _id: '$combinedData.category',
+                            quantity: { $sum: 1 },
+                            revenue: { $sum: '$combinedData.price' }
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            category: '$_id',
+                            quantity: '$quantity',
+                            revenue: '$revenue'
+                        }
+                    }
+                ]).toArray();
+                // console.log(result);
+                //    bd268       
+                res.send(result);
+                console.log('Admin order state: ', result.length);
+            } catch (err) {
+                console.log(err);
+
+            }
+        });
+
+
+
         // user cart page item delete 
         app.delete('/carts/:id', async (req, res) => {
             const id = req?.params?.id
@@ -230,9 +344,39 @@ async function run() {
                 console.log(err);
             }
         })
-
+        // payment  save api -------------
+        app.post('/payments', async (req, res) => {
+            try {
+                const data = req.body;
+                const paymentResult = await paymentsCollection.insertOne(data)
+                // console.log('payment result ', paymentResult);
+                res.send(paymentResult)
+                const query = {
+                    _id:
+                        { $in: data.cardIds.map(id => new ObjectId(id)) }
+                }
+                const deleteResult = await cartsCollection.deleteMany(query)
+                // console.log("Save this user: ", data);
+            }
+            catch (err) {
+                // res.send("payment Not Save: ", err)
+                console.log(err);
+            }
+        })
+        // single user email payment history // payment history page--------
+        app.get('/payments/:email', tokenVarify, async (req, res) => {
+            const email = req.params.email
+            // console.log(email , '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+            if (email !== req.decoded.email) {
+                return res.send({ Message: "Forbidden access" })
+            }
+            // console.log(req.decoded.email, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            const query = { email: email }
+            const result = await paymentsCollection.find(query).toArray()
+            res.send(result)
+        })
         // all users get api -------------
-        app.get('/users', tokenVarify, verifyAdmin, async (req, res) => {
+        app.get('/users', tokenVarify, async (req, res) => {
 
             try {
                 const result = await usersCollection.find().toArray()
@@ -284,20 +428,16 @@ async function run() {
         // admin role get api ----------
         app.get('/users/admin/:email', tokenVarify, async (req, res) => {
             try {
-                const email = req.params?.email
-                // console.log({email});
-                // console.log(req.decoded.email ,'---------------');
-                // if (email !== req.decoded.email) {
-                //     return res.status(403).send({ Message: 'Forbiden access' })
-                // }
+                const email = req.params?.email;
+                console.log('verify email 000000', { email });
                 const query = { email: email }
                 const user = await usersCollection.findOne(query)
-                console.log({ user });
+                console.log('user 000000', { user });
                 let admin = false;
                 if (user) {
                     if (user?.role) {
                         admin = user?.role === "admin"
-                    }                
+                    }
                 }
                 console.log({ 'This user is admin: ': admin });
                 res.send({ admin })
@@ -335,6 +475,7 @@ async function run() {
         // await client.close();
     }
 }
+
 run().catch(console.dir);
 
 
@@ -345,3 +486,22 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Bistro server is running on port: ${port}`);
 })
+
+
+
+// app.get('/order-states', async (req, res) => {
+//     const result = await paymentCollection
+//       .aggregate([
+//         {
+//           $unwind: '$menuItemIds',
+//         },
+//         // { $addFields: { _Id: { $toString: '$_id' } } },
+//         { $project: { menuItemId: { $toObjectId: '$menuItemIds' } } },
+
+//         {
+//           $lookup: {
+//             from: 'menu',
+//             localField: 'menuItemId',
+//             foreignField: '_id',
+
+// foreignField: '_id'.toString(),

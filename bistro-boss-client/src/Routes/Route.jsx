@@ -14,6 +14,11 @@ import AdminRoute from "./AdminRoute";
 import AddItem from "../pages/DashBord/AddItem/AddItem";
 import ManageAllitems from "../pages/dashbord/ManageAllitems/ManageAllitems";
 import ManageUpdateItem from "../pages/dashbord/ManageAllitems/ManageUpdateItem";
+import MyPdf from "../pages/dashbord/Pdf/MyPdf";
+import Payment from "../pages/dashbord/Payment/Payment";
+import PaymentHistory from "../pages/dashbord/Payment/PaymentHistory";
+import UserHome from "../pages/dashbord/UserHome/UserHome";
+import AdminHome from "../pages/dashbord/AdminHome/AdminHome";
 
 const Route = createBrowserRouter([
   {
@@ -60,8 +65,30 @@ const Route = createBrowserRouter([
     ),
     children: [
       {
+        path: "user_home",
+        element: <UserHome />,
+      },
+      {
         path: "cart",
         element: <Cart />,
+      },
+      {
+        path: "payment",
+        element: <Payment />,
+      },
+      {
+        path: "payment_history",
+        element: <PaymentHistory />,
+      },
+
+      // admin only access
+      {
+        path: "admin_home",
+        element: (
+          <AdminRoute>
+            <AdminHome />
+          </AdminRoute>
+        ),
       },
       {
         path: "add_items",
@@ -94,6 +121,10 @@ const Route = createBrowserRouter([
             <AllUsers />
           </AdminRoute>
         ),
+      },
+      {
+        path: "my_pdf",
+        element: <MyPdf />,
       },
     ],
   },

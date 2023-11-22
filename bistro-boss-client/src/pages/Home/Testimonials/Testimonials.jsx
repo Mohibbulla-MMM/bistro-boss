@@ -20,7 +20,7 @@ const Testimonials = () => {
 // console.log(review);
   useEffect(() => {
     axios({
-      url: "http://localhost:7000/reviews",
+      url: "https://bistro-boss-server-omega-lyart.vercel.app/reviews",
       method: "GET",
     })
       .then((res) => {

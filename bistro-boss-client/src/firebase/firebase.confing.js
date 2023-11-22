@@ -1,7 +1,10 @@
 // Import the functions you need from the SDKs you need
+
+// firebase app use > assignment-11
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth';
 
+// firebase app use > assignment-11
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_apiKey,
     authDomain: import.meta.env.VITE_authDomain,

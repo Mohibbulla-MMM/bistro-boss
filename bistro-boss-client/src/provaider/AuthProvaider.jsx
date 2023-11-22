@@ -49,24 +49,26 @@ const AuthProvaider = ({ children }) => {
 
   // user observer ------------
   useEffect(() => {
-    const userObserver = onAuthStateChanged(auth, (currentUser) => {
+    const userObserver = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         // TODO: token create
         const user = { email: currentUser.email };
-        axiosPublic.post("/jwt", user).then((res) => {
+        await axiosPublic.post("/jwt", user).then((res) => {
           // res.data
-          console.log(res);
+          // console.log(res.data.token);
           if (res.data.token) {
             localStorage.setItem("jwt-token", res.data.token);
+            setLoading(false);
           }
         });
       } else {
         // TODO: token cancel
         localStorage.removeItem("jwt-token");
+        setLoading(false);
       }
+      // setLoading(false);
       console.log("Current User: ", currentUser?.email);
-      setLoading(false);
     });
     return () => userObserver();
   }, []);
